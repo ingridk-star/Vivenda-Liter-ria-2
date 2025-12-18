@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import BrandLogo from './components/BrandLogo';
-import { AppTab, Review, SocialActivity, UserProfile, User } from './types';
+import { AppTab, Review, SocialActivity, UserProfile } from './types';
 import { Camera, Search, BookOpen, Star, Trash2, Edit3, Hash, Heart, MessageCircle, UserPlus, UserCheck, Users, LogIn, UserCircle, Mail, Lock, ArrowRight, LogOut } from 'lucide-react';
 import { getBookInfoFromCover } from './services/geminiService';
 
@@ -11,13 +11,6 @@ const App: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   
-  // Auth State
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authName, setAuthName] = useState('');
-
   // State for the new review form
   const [newTitle, setNewTitle] = useState('');
   const [newAuthor, setNewAuthor] = useState('');
@@ -27,11 +20,7 @@ const App: React.FC = () => {
   const [newCover, setNewCover] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for saved session
-    const savedUser = localStorage.getItem('vl-current-user');
-    if (savedUser) setCurrentUser(JSON.parse(savedUser));
-
-    // Load reviews
+    // Load reviews from local storage
     const savedReviews = localStorage.getItem('vl-reviews');
     if (savedReviews) setReviews(JSON.parse(savedReviews));
   }, []);
@@ -39,36 +28,6 @@ const App: React.FC = () => {
   const saveReviews = (updated: Review[]) => {
     setReviews(updated);
     localStorage.setItem('vl-reviews', JSON.stringify(updated));
-  };
-
-  const handleAuth = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (authMode === 'register') {
-      const newUser: User = {
-        id: Date.now().toString(),
-        name: authName,
-        email: authEmail,
-      };
-      localStorage.setItem('vl-current-user', JSON.stringify(newUser));
-      setCurrentUser(newUser);
-    } else {
-      const existingUser: User = {
-        id: 'user-1',
-        name: authEmail.split('@')[0],
-        email: authEmail,
-      };
-      localStorage.setItem('vl-current-user', JSON.stringify(existingUser));
-      setCurrentUser(existingUser);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('vl-current-user');
-    setCurrentUser(null);
-    setAuthEmail('');
-    setAuthPassword('');
-    setAuthName('');
-    setActiveTab('library');
   };
 
   const toggleFollow = (userId: string) => {
@@ -122,80 +81,6 @@ const App: React.FC = () => {
     saveReviews(reviews.filter(r => r.id !== id));
   };
 
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen max-w-md mx-auto bg-[#f8f5f2] flex flex-col p-8 animate-in fade-in duration-700">
-        <div className="flex-grow flex flex-col items-center justify-center space-y-8">
-          <div className="animate-bounce-slow">
-            <BrandLogo size={120} />
-          </div>
-          
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-stone-800 italic mb-2">Vivenda Literária</h1>
-            <p className="text-stone-500 font-medium tracking-tight">Abra as portas da sua próxima leitura.</p>
-          </div>
-
-          <form onSubmit={handleAuth} className="w-full space-y-4 animate-in slide-in-from-bottom-8 duration-500 bg-white/40 backdrop-blur-sm p-6 rounded-3xl border border-white shadow-sm">
-            {authMode === 'register' && (
-              <div className="relative">
-                <input 
-                  type="text" 
-                  required
-                  value={authName}
-                  onChange={e => setAuthName(e.target.value)}
-                  placeholder="Seu nome completo"
-                  className="w-full bg-white border border-stone-200 rounded-2xl pl-12 pr-4 py-4 text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300 transition-all shadow-sm"
-                />
-                <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={20} />
-              </div>
-            )}
-            <div className="relative">
-              <input 
-                type="email" 
-                required
-                value={authEmail}
-                onChange={e => setAuthEmail(e.target.value)}
-                placeholder="E-mail"
-                className="w-full bg-white border border-stone-200 rounded-2xl pl-12 pr-4 py-4 text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300 transition-all shadow-sm"
-              />
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={20} />
-            </div>
-            <div className="relative">
-              <input 
-                type="password" 
-                required
-                value={authPassword}
-                onChange={e => setAuthPassword(e.target.value)}
-                placeholder="Senha"
-                className="w-full bg-white border border-stone-200 rounded-2xl pl-12 pr-4 py-4 text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-300 transition-all shadow-sm"
-              />
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={20} />
-            </div>
-
-            <button 
-              type="submit"
-              className="w-full bg-stone-800 text-white py-4 rounded-2xl font-bold shadow-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
-            >
-              {authMode === 'login' ? 'Entrar' : 'Criar Conta'}
-              <ArrowRight size={18} />
-            </button>
-          </form>
-
-          <button 
-            onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-            className="text-stone-500 text-sm font-medium hover:text-stone-800 transition-colors"
-          >
-            {authMode === 'login' ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Faça login'}
-          </button>
-        </div>
-        
-        <footer className="py-4 text-center">
-          <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold">Vivenda Literária © 2024</p>
-        </footer>
-      </div>
-    );
-  }
-
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
       {activeTab === 'library' && (
@@ -203,7 +88,7 @@ const App: React.FC = () => {
           <div className="mb-8 flex justify-between items-end">
             <div>
               <h2 className="text-3xl font-bold text-stone-800 mb-2">Sua Estante</h2>
-              <p className="text-stone-500 text-sm">Olá, {currentUser.name.split(' ')[0]}!</p>
+              <p className="text-stone-500 text-sm italic">Bem-vindo à sua Vivenda Literária.</p>
             </div>
           </div>
 
@@ -250,14 +135,14 @@ const App: React.FC = () => {
         <div className="animate-in fade-in duration-500">
           <div className="p-6 pb-2 border-b border-stone-100">
             <h3 className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-4">Sugestões Literárias</h3>
-            <p className="text-[11px] text-stone-400 italic py-2">Procurando leitores próximos...</p>
+            <p className="text-[11px] text-stone-400 italic py-2">Conectando você a outros leitores...</p>
           </div>
 
           <div className="p-6 space-y-8">
             <div className="py-20 text-center text-stone-400 px-10">
               <Users size={48} className="mx-auto mb-4 opacity-20" />
-              <h3 className="text-stone-800 font-bold mb-2">Feed de Lançamentos</h3>
-              <p className="italic text-sm">O Vivenda Literária é melhor com amigos. Encontre outros leitores e compartilhe sua jornada!</p>
+              <h3 className="text-stone-800 font-bold mb-2">Feed Global</h3>
+              <p className="italic text-sm">Em breve você poderá seguir outros moradores desta vivenda e compartilhar descobertas.</p>
             </div>
           </div>
         </div>
@@ -374,8 +259,8 @@ const App: React.FC = () => {
             <div className="mb-4">
               <BrandLogo size={100} />
             </div>
-            <h2 className="text-2xl font-bold text-stone-800">{currentUser.name}</h2>
-            <p className="text-stone-500 text-sm">{currentUser.email}</p>
+            <h2 className="text-2xl font-bold text-stone-800 italic">Vivenda Literária</h2>
+            <p className="text-stone-500 text-sm">Coleção Pessoal</p>
           </div>
 
           <div className="space-y-4">
@@ -390,21 +275,15 @@ const App: React.FC = () => {
              
              <div className="mt-8 pt-8 border-t border-stone-200 space-y-2">
                <button 
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 p-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 transition-colors"
-               >
-                 <LogOut size={18} />
-                 Sair da Conta
-               </button>
-               <button 
                 onClick={() => {
-                  if(confirm("Tem certeza que deseja apagar todas as suas resenhas?")) {
+                  if(confirm("Tem certeza que deseja apagar todas as suas resenhas? Isso não pode ser desfeito.")) {
                     saveReviews([]);
                   }
                 }}
-                className="w-full text-left p-4 text-xs text-stone-400 hover:text-stone-600 transition-colors"
+                className="w-full flex items-center gap-3 p-4 rounded-2xl text-sm font-bold text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all"
                >
-                 Limpar todos os dados locais
+                 <Trash2 size={18} />
+                 Limpar Estante (Local)
                </button>
              </div>
           </div>
