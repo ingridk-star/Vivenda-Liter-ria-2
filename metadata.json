@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Vivenda Literária Reviewer",
+  "description": "Um app elegante para gerenciar suas resenhas literárias, com inteligência artificial para polir seus textos e gerar legendas para o Instagram @vivenda.literaria.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
