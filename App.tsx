@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Layout from './components/Layout';
 import BrandLogo from './components/BrandLogo';
 import { api } from './services/api';
@@ -211,6 +212,7 @@ const App: React.FC = () => {
         <footer className="py-4 text-center">
           <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold">Vivenda Literária © 2024</p>
         </footer>
+        <SpeedInsights />
       </div>
     );
   }
@@ -414,6 +416,7 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+      <SpeedInsights />
     </Layout>
   );
 };
